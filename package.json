@@ -1,0 +1,23 @@
+
+{
+  "name": "pharma-cards",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "gsap": "^3.12.5",
+    "@vueuse/motion": "^2.0.0"
+  },
+  "devDependencies": {
+    "@nuxt/devtools": "latest",
+    "@nuxtjs/tailwindcss": "^6.11.4",
+    "nuxt": "^3.10.3"
+  }
+}
