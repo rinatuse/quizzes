@@ -12,17 +12,46 @@
 
     <!-- Навигация между режимами -->
     <div class="flex justify-center space-x-4 mb-8">
+      <div class="relative">
+        <button 
+          @click="toggleDropdown"
+          class="px-6 py-2 rounded-full transition-all duration-300 transform flex items-center space-x-2"
+          :class="currentMode === 'cards' 
+            ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white scale-105 shadow-lg' 
+            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+        >
+          <span>Справочник</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" :class="dropdownOpen ? 'transform rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        
+        <!-- Выпадающий список категорий -->
+        <div 
+          v-if="dropdownOpen" 
+          class="absolute z-10 mt-2 w-56 bg-white rounded-xl shadow-lg py-2 left-0 max-h-60 overflow-y-auto"
+        >
+          <button 
+            @click="selectCategory(null)"
+            class="w-full text-left px-4 py-2 hover:bg-indigo-50 text-gray-700"
+            :class="selectedCategory === null ? 'font-bold text-indigo-700 bg-indigo-50' : ''"
+          >
+            Все категории
+          </button>
+          <button 
+            v-for="category in uniqueCategories" 
+            :key="category"
+            @click="selectCategory(category)"
+            class="w-full text-left px-4 py-2 hover:bg-indigo-50 text-gray-700"
+            :class="selectedCategory === category ? 'font-bold text-indigo-700 bg-indigo-50' : ''"
+          >
+            {{ category }}
+          </button>
+        </div>
+      </div>
+      
       <button 
-        @click="currentMode = 'cards'"
-        class="px-6 py-2 rounded-full transition-all duration-300 transform"
-        :class="currentMode === 'cards' 
-          ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white scale-105 shadow-lg' 
-          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-      >
-        Справочник
-      </button>
-      <button 
-        @click="currentMode = 'pharmacology'"
+        @click="switchToPharmacology"
         class="px-6 py-2 rounded-full transition-all duration-300 transform"
         :class="currentMode === 'pharmacology' 
           ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white scale-105 shadow-lg' 
@@ -35,134 +64,41 @@
     <!-- Контейнер для карточек -->
     <transition name="fade" mode="out-in">
       <div v-if="currentMode === 'cards'" class="cards-container">
-        <div class="grid md:grid-cols-2 gap-6">
-          <!-- Список категорий -->
-          <div class="bg-white rounded-xl shadow-lg p-6">
-            <h2 class="text-2xl font-bold text-indigo-700 mb-4">Категории</h2>
-            <div class="space-y-2">
-              <button 
-                v-for="category in uniqueCategories" 
-                :key="category"
-                @click="selectCategory(category)"
-                class="w-full text-left px-4 py-2 rounded-lg transition-all duration-300"
-                :class="selectedCategory === category 
-                  ? 'bg-indigo-100 text-indigo-700' 
-                  : 'hover:bg-gray-100 text-gray-700'"
-              >
-                {{ category }}
-              </button>
-            </div>
-          </div>
-
-          <!-- Карточки препаратов -->
-          <div class="space-y-6">
-            <div 
-              v-for="(med, index) in filteredMedications" 
-              :key="index"
-              class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer"
-              @click="openMedicationDetails(med)"
-            >
-              <h3 class="text-xl font-bold text-indigo-700 mb-2">{{ med.title }}</h3>
-              <p class="text-gray-600 mb-4">{{ med.category }}</p>
-              <div class="text-sm text-gray-500 font-mono">{{ med.text }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Контейнер для обычного квиза (один ответ) -->
-      <div v-else-if="currentMode === 'quiz'" class="quiz-container max-w-2xl mx-auto">
-        <div v-if="!quizCompleted" class="bg-white rounded-xl shadow-lg p-8">
-          <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold text-indigo-700">
-              Вопрос {{ currentQuestionIndex + 1 }} / {{ quizzes.length }}
-            </h2>
-            <div class="text-sm text-gray-600">
-              Правильных ответов: {{ correctAnswersCount }}
-            </div>
-          </div>
-
-          <div class="quiz-question">
-            <p class="text-xl font-medium mb-6">
-              {{ currentQuestion.question }}
-            </p>
-
-            <div class="space-y-4">
-              <button
-                v-for="(option, index) in currentQuestion.options"
-                :key="index"
-                @click="selectAnswer(index)"
-                class="w-full px-4 py-3 text-left rounded-lg transition-all duration-300 border-2"
-                :class="getOptionClasses(index)"
-              >
-                {{ option }}
-              </button>
-            </div>
-
-            <!-- Результат ответа -->
-            <div 
-              v-if="answerSelected"
-              class="mt-6 p-4 rounded-lg transition-all duration-300"
-              :class="isCurrentAnswerCorrect 
-                ? 'bg-green-50 border-2 border-green-300' 
-                : 'bg-red-50 border-2 border-red-300'"
-            >
-              <p class="font-semibold" 
-                :class="isCurrentAnswerCorrect 
-                  ? 'text-green-700' 
-                  : 'text-red-700'"
-              >
-                {{ isCurrentAnswerCorrect ? 'Верно!' : 'Неверно!' }}
-              </p>
-              <p class="mt-2 text-gray-700">
-                {{ currentQuestion.explanation }}
-              </p>
-            </div>
-          </div>
-
-          <!-- Навигация по вопросам -->
-          <div class="flex justify-between mt-6">
-            <button 
-              @click="previousQuestion"
-              :disabled="currentQuestionIndex === 0"
-              class="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 disabled:opacity-50"
-            >
-              Предыдущий
-            </button>
-            <button 
-              @click="nextQuestion"
-              :disabled="!answerSelected"
-              class="px-4 py-2 rounded-lg bg-indigo-600 text-white disabled:opacity-50"
-            >
-              {{ currentQuestionIndex === quizzes.length - 1 ? 'Завершить' : 'Следующий' }}
-            </button>
-          </div>
-        </div>
-
-        <!-- Результаты квиза -->
-        <div v-else class="bg-white rounded-xl shadow-lg p-8 text-center">
-          <h2 class="text-3xl font-bold text-indigo-700 mb-4">
-            Тест завершен!
-          </h2>
-          <div class="text-xl mb-6">
-            Правильных ответов: 
-            <span class="font-bold text-indigo-600">
-              {{ correctAnswersCount }} из {{ quizzes.length }}
-            </span>
-          </div>
-          <div class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-indigo-600 mb-6">
-            Результат: {{ Math.round((correctAnswersCount / quizzes.length) * 100) }}%
-          </div>
+        <!-- Информация о текущей категории -->
+        <div class="mb-6 text-center" v-if="selectedCategory">
+          <h2 class="text-2xl font-bold text-indigo-700">{{ selectedCategory }}</h2>
           <button 
-            @click="restartQuiz"
-            class="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-full hover:scale-105 transition-transform"
+            @click="selectedCategory = null"
+            class="text-sm text-indigo-600 hover:text-indigo-800 mt-2"
           >
-            Пройти тест заново
+            Показать все категории
           </button>
         </div>
+        <div v-else class="mb-6 text-center">
+          <h2 class="text-2xl font-bold text-indigo-700">Все препараты</h2>
+        </div>
+
+        <!-- Сетка карточек -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div 
+            v-for="(med, index) in filteredMedications" 
+            :key="index"
+            class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer h-full flex flex-col"
+            @click="openMedicationDetails(med)"
+          >
+            <h3 class="text-xl font-bold text-indigo-700 mb-2">{{ med.title }}</h3>
+            <p class="text-gray-600 mb-4">{{ med.category }}</p>
+            <div class="text-sm text-gray-500 font-mono mt-auto">{{ med.text }}</div>
+          </div>
+        </div>
+
+        <!-- Сообщение если нет результатов -->
+        <div v-if="filteredMedications.length === 0" class="text-center py-10">
+          <p class="text-gray-600">Нет препаратов в выбранной категории.</p>
+        </div>
       </div>
 
-      <!-- Контейнер для фармакологического квиза (множественный выбор) -->
+      <!-- Контейнер для фармакологического квиза (многовариантный выбор) -->
       <div v-else-if="currentMode === 'pharmacology'" class="quiz-container max-w-2xl mx-auto">
         <div v-if="!pharmacologyQuizCompleted" class="bg-white rounded-xl shadow-lg p-8">
           <div class="flex justify-between items-center mb-6">
@@ -320,7 +256,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { prescriptions } from '~/data/prescriptions.js'
 import { quizzes } from '~/data/quizzes.js'
 
@@ -328,12 +264,24 @@ import { quizzes } from '~/data/quizzes.js'
 const currentMode = ref('cards')
 const selectedCategory = ref(null)
 const selectedMedication = ref(null)
+const dropdownOpen = ref(false)
 
-// Квиз
-const currentQuestionIndex = ref(0)
-const selectedAnswers = ref([])
-const quizCompleted = ref(false)
-const answerSelected = ref(false)
+// Обработчик кликов вне выпадающего списка
+const closeDropdownOnOutsideClick = (event) => {
+  if (dropdownOpen.value) {
+    dropdownOpen.value = false
+  }
+}
+
+// Добавляем слушатель события при монтировании компонента
+onMounted(() => {
+  document.addEventListener('click', closeDropdownOnOutsideClick)
+})
+
+// Удаляем слушатель события перед размонтированием компонента
+onBeforeUnmount(() => {
+  document.removeEventListener('click', closeDropdownOnOutsideClick)
+})
 
 // Фармакологический квиз (многовариантный выбор)
 const currentPharmQuestionIndex = ref(0)
@@ -362,6 +310,21 @@ const initPharmSelectedAnswers = () => {
 // Инициализируем массив при загрузке компонента
 initPharmSelectedAnswers()
 
+// Методы для работы с выпадающим списком
+const toggleDropdown = (event) => {
+  event.stopPropagation() // Предотвращаем всплытие события
+  dropdownOpen.value = !dropdownOpen.value
+  if (currentMode.value !== 'cards') {
+    currentMode.value = 'cards'
+  }
+}
+
+// Методы для навигации по режимам
+const switchToPharmacology = () => {
+  currentMode.value = 'pharmacology'
+  dropdownOpen.value = false
+}
+
 // Computed свойства для карточек
 const uniqueCategories = computed(() => {
   return [...new Set(prescriptions.map(p => p.category))]
@@ -375,70 +338,13 @@ const filteredMedications = computed(() => {
 
 // Методы для работы с карточками
 const selectCategory = (category) => {
-  selectedCategory.value = selectedCategory.value === category ? null : category
+  selectedCategory.value = category
+  dropdownOpen.value = false
+  currentMode.value = 'cards'
 }
 
 const openMedicationDetails = (medication) => {
   selectedMedication.value = medication
-}
-
-// Методы для квиза
-const currentQuestion = computed(() => quizzes[currentQuestionIndex.value])
-
-const isCurrentAnswerCorrect = computed(() => {
-  return selectedAnswers.value[currentQuestionIndex.value] === currentQuestion.value.correctAnswer
-})
-
-const correctAnswersCount = computed(() => {
-  return selectedAnswers.value.filter((answer, index) => 
-    answer === quizzes[index].correctAnswer
-  ).length
-})
-
-const selectAnswer = (index) => {
-  if (!answerSelected.value) {
-    selectedAnswers.value[currentQuestionIndex.value] = index
-    answerSelected.value = true
-  }
-}
-
-const getOptionClasses = (index) => {
-  if (!answerSelected.value) {
-    return 'border-gray-200 hover:bg-gray-50'
-  }
-  
-  if (index === currentQuestion.value.correctAnswer) {
-    return 'border-green-300 bg-green-50 text-green-700'
-  }
-  
-  if (index === selectedAnswers.value[currentQuestionIndex.value]) {
-    return 'border-red-300 bg-red-50 text-red-700'
-  }
-  
-  return 'border-gray-200 opacity-50'
-}
-
-const nextQuestion = () => {
-  if (currentQuestionIndex.value < quizzes.length - 1) {
-    currentQuestionIndex.value++
-    answerSelected.value = selectedAnswers.value[currentQuestionIndex.value] !== undefined
-  } else {
-    quizCompleted.value = true
-  }
-}
-
-const previousQuestion = () => {
-  if (currentQuestionIndex.value > 0) {
-    currentQuestionIndex.value--
-    answerSelected.value = selectedAnswers.value[currentQuestionIndex.value] !== undefined
-  }
-}
-
-const restartQuiz = () => {
-  currentQuestionIndex.value = 0
-  selectedAnswers.value = []
-  quizCompleted.value = false
-  answerSelected.value = false
 }
 
 // Методы для фармакологического квиза (многовариантный выбор)
