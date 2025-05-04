@@ -29,10 +29,11 @@
         </button>
       </div>
     </div>
-
-    <!-- Фильтры по категориям -->
-    <div class="mb-6">
-      <div class="relative max-w-xs mx-auto">
+    
+    <!-- Панель с фильтрами -->
+    <div class="flex flex-col md:flex-row justify-center items-center gap-4 mb-6">
+      <!-- Фильтры по категориям -->
+      <div class="relative w-full max-w-xs">
         <button 
           @click="toggleCategoryDropdown" 
           class="w-full flex items-center justify-between px-4 py-3 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow"
@@ -64,6 +65,18 @@
           </div>
         </div>
       </div>
+      
+      <!-- Переключатель избранного -->
+      <button 
+        @click="showOnlyFavorites = !showOnlyFavorites"
+        class="px-4 py-3 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow flex items-center gap-2"
+        :class="showOnlyFavorites ? 'bg-red-50 text-red-600 font-semibold' : 'text-gray-700'"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" :class="showOnlyFavorites ? 'text-red-600 fill-current' : 'text-gray-400'" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
+        </svg>
+        {{ showOnlyFavorites ? 'Все препараты' : 'Только избранные' }}
+      </button>
     </div>
 
     <!-- Режим карточек -->
@@ -259,6 +272,7 @@ const selectedCategory = ref(null)
 const dropdownOpen = ref(false)
 const searchQuery = ref('')
 const favorites = ref([])
+const showOnlyFavorites = ref(false)
 
 // Обработка выпадающего списка категорий
 const toggleCategoryDropdown = (event) => {
@@ -296,6 +310,11 @@ const categories = computed(() => {
 // Фильтрация препаратов по категории и поисковому запросу
 const filteredMedications = computed(() => {
   let result = emergencyMeds
+
+  // Фильтрация только избранных
+  if (showOnlyFavorites.value) {
+    result = result.filter(med => favorites.value.includes(med.id))
+  }
 
   // Фильтрация по категории
   if (selectedCategory.value) {
