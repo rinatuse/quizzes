@@ -1,3 +1,5 @@
+// app.vue
+
 <template>
   <div class="container mx-auto py-8 px-4">
     <h1 class="text-3xl font-bold text-center mb-8 text-indigo-700">Медицинский справочник</h1>
@@ -19,6 +21,13 @@
         >
           Экстренные рецепты
         </button>
+        <button 
+          @click="activeComponent = 'exam'"
+          class="px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 transform"
+          :class="activeComponent === 'exam' ? 'bg-gradient-to-r from-green-600 to-teal-600 text-white scale-105 shadow-lg' : 'text-gray-700 hover:bg-gray-100'"
+        >
+          Экзамен
+        </button>
       </div>
     </div>
     
@@ -33,13 +42,23 @@
 import { ref, computed } from 'vue'
 import PharmaCards from '~/components/PharmaCards.vue'
 import EmergencyCards from '~/components/EmergencyCards.vue'
+import ExamTickets from '~/components/ExamTickets.vue'
 
 // Активный компонент
 const activeComponent = ref('pharma')
 
 // Компьютед свойство для определения текущего компонента
 const currentComponent = computed(() => {
-  return activeComponent.value === 'pharma' ? PharmaCards : EmergencyCards
+  switch (activeComponent.value) {
+    case 'pharma':
+      return PharmaCards
+    case 'emergency':
+      return EmergencyCards
+    case 'exam':
+      return ExamTickets
+    default:
+      return PharmaCards
+  }
 })
 </script>
 
