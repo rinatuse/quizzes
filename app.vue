@@ -28,6 +28,13 @@
         >
           Экзамен
         </button>
+        <button
+          @click="activeComponent = 'veronica'"
+          class="px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 transform"
+          :class="activeComponent === 'veronica' ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white scale-105 shadow-lg' : 'text-gray-700 hover:bg-gray-100'"
+        >
+          Вероника
+        </button>
       </div>
     </div>
     
@@ -43,6 +50,7 @@ import { ref, computed } from 'vue'
 import PharmaCards from '~/components/PharmaCards.vue'
 import EmergencyCards from '~/components/EmergencyCards.vue'
 import ExamTickets from '~/components/ExamTickets.vue'
+import VeronicaCards from '~/components/VeronicaCards.vue'
 
 // Активный компонент
 const activeComponent = ref('pharma')
@@ -56,6 +64,8 @@ const currentComponent = computed(() => {
       return EmergencyCards
     case 'exam':
       return ExamTickets
+    case 'veronica':
+      return VeronicaCards
     default:
       return PharmaCards
   }
