@@ -1,4 +1,4 @@
-[
+export const veronica = [
   {
     "id": 1,
     "title": "Хлорпромазин",
