@@ -35,6 +35,13 @@
         >
           Вероника
         </button>
+        <button
+          @click="activeComponent = 'sonya'"
+          class="px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 transform"
+          :class="activeComponent === 'sonya' ? 'bg-gradient-to-r from-yellow-600 to-red-600 text-white scale-105 shadow-lg' : 'text-gray-700 hover:bg-gray-100'"
+        >
+          Соня
+        </button>
       </div>
     </div>
     
