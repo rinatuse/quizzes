@@ -58,6 +58,7 @@ import PharmaCards from '~/components/PharmaCards.vue'
 import EmergencyCards from '~/components/EmergencyCards.vue'
 import ExamTickets from '~/components/ExamTickets.vue'
 import VeronicaCards from '~/components/VeronicaCards.vue'
+import SonyaCards from '~/components/SonyaCards.vue'
 
 // Активный компонент
 const activeComponent = ref('pharma')
@@ -73,6 +74,8 @@ const currentComponent = computed(() => {
       return ExamTickets
     case 'veronica':
       return VeronicaCards
+    case 'sonya':
+      return SonyaCards
     default:
       return PharmaCards
   }
